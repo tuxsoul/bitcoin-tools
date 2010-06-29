@@ -41,20 +41,12 @@ def dump_blockindex(db_env, owner=None, n_to_dump=1000):
     type = kds.read_string()
 
     if type == "owner":
-      k_hash160 = kds.read_bytes(20)
-      k_pos = _read_CDiskTxPos(vds)
+      hash160 = kds.read_bytes(20)
+      pos = _read_CDiskTxPos(vds)
+      height = kds.read_int32()
+      print("TxOwner(%s: %d %d %d) height %d"%
+            (hash_160_to_bc_address(hash160), pos[0], pos[1], pos[2], height))
 
-      type_v = vds.read_string()
-      if type_v == "owner":
-        v_hash160 = kds.read_bytes(20)
-        v_pos = _read_CDiskTxPos(kds)
-        height = kds.read_int32()
-      else:
-        logging.warn("tx owner, unknown value type: %s"%(type_v,))
-        continue
-      print("TxOwner(%s: %d %d %d) for %s, at (%d %d %d) height %d"%
-            (hash_160_to_bc_address(k_hash160), k_pos[0], k_pos[1], k_pos[2],
-             hash_160_to_bc_address(v_hash160), v_pos[0], v_pos[1], v_pos[2], height))
     elif type == "tx":
       hash256 = kds.read_bytes(32)
       version = vds.read_uint32()
@@ -63,7 +55,7 @@ def dump_blockindex(db_env, owner=None, n_to_dump=1000):
       n_tx_out = vds.read_compact_size()
       for i in range(0,n_tx_out):
         tx_out = _read_CDiskTxPos(vds)
-        if tx_out[0] != 0xffffffffL:
+        if tx_out[0] != 0xffffffffL:  # UINT_MAX means no TxOuts (unspent)
           print("  ==> TxOut(%d %d %d)"%tx_out)
       
     else:

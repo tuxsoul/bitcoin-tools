@@ -31,13 +31,12 @@ tx : key continues with uint256 transaction hash/id (32 bytes)
   CDiskTxPos : location of transaction (in the blk000N.dat files)
   vector<CDiskTxPos> : location of transactions that spend this transaction's inputs
 
-The "owner" records are a linked list of all transactions belonging to a given owner (public key).
+The "owner" records are list of all transactions belonging to a given owner (public key).
+Berkeley DB stores data sorted by key, so finding all transactions owned by an owner is
+easy (return the keys greater than "owner"+hash160+CDiskTxPos(0,0,0) that have the right hash)
 
-owner : key continues with hash160 pubkey hash and CDiskTxPos.  If CDiskTxPos is (0,0,0) that's the head of the list.
+owner : key continues with hash160 pubkey hash and CDiskTxPos.
  value is:
-  string : "owner"
-  hash160 : owner hash
-  CDiskTxPos : position of transaction in blk000N.dat file
   uint32 : height  of this transaction in the longest block chain
 
 

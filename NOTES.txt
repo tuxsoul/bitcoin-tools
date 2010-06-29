@@ -20,6 +20,27 @@ So: I recieved 500.00 bitcoins from whoever was the recipient of transaction wit
 
 I then sent 142.40 to somebody (their bcaddress is, in hex, 2e8d...5179).  And got 357.60 in change.
 
+blkindex.dat serialization notes:
+---------------------------------
+
+Keys beging with a serialized string, rest of key and value depend on that first string.  Possibilities are:
+
+tx : key continues with uint256 transaction hash/id (32 bytes)
+ value is:
+  version : 32-bit unsigned int
+  CDiskTxPos : location of transaction (in the blk000N.dat files)
+  vector<CDiskTxPos> : location of transactions that spend this transaction's inputs
+
+The "owner" records are a linked list of all transactions belonging to a given owner (public key).
+
+owner : key continues with hash160 pubkey hash and CDiskTxPos.  If CDiskTxPos is (0,0,0) that's the head of the list.
+ value is:
+  string : "owner"
+  hash160 : owner hash
+  CDiskTxPos : position of transaction in blk000N.dat file
+  uint32 : height  of this transaction in the longest block chain
+
+
 wallet.dat serialization notes:
 -------------------------------
 Berkely DB BTREE file (key-value pairs).
@@ -62,6 +83,11 @@ setting : key continues with setting name, value depends on setting as follows:
 
 Complex value type serialization:
 ---------------------------------
+
+CDiskTxPos:
+  uint32 nFile       : Which of the blk000*.dat files
+  uint32 nBlockPos   : Which block in that file
+  uint32 nTxPos      : Which transaction in the block
 
 CAddress:
   int nVersion

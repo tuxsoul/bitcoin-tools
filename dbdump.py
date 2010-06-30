@@ -9,6 +9,7 @@ import sys
 from address import dump_addresses
 from wallet import dump_wallet
 from blocks import dump_blockindex
+from transactions import dump_transactions
 
 def determine_db_dir():
   import os
@@ -31,6 +32,8 @@ def main():
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
                     help="Print addresses in the addr.dat file")
+  parser.add_option("--transactions", action="store", dest="owner_transactions", default=None,
+                    help="Print transactions for given Bitcoin address")
   (options, args) = parser.parse_args()
 
   db_dir = determine_db_dir()
@@ -44,6 +47,8 @@ def main():
     logging.error("Couldn't open "+DB_DIR)
     sys.exit(1)
 
+  import pdb; pdb.set_trace()
+
   if options.dump_wallet or options.dump_wallet_tx:
     dump_wallet(db_env, options.dump_wallet, options.dump_wallet_tx)
 
@@ -52,6 +57,9 @@ def main():
 
   if options.dump_blocks:
     dump_blockindex(db_env)
+
+  if options.owner_transactions is not None:
+    dump_transactions(db_env, owner=options.owner_transactions)
 
   db_env.close()
 

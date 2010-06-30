@@ -27,6 +27,25 @@ def b58encode(v):
 
   return (__b58chars[0]*nPad) + result
 
+def b58decode(v, length):
+  """ decode v into a little-endian string of len bytes
+  """
+  long_value = 0L
+  for (i, c) in enumerate(v[::-1]):
+    long_value += __b58chars.find(c) * (__b58base**i)
+
+  result = ''
+  while long_value >= 256:
+    div, mod = divmod(long_value, 256)
+    result = chr(mod) + result
+    long_value = div
+  result = chr(long_value) + result
+  if len(result) < length:
+    n_pad = length-len(result)
+    result = chr(0)*n_pad + result
+
+  return result
+
 try:
   # Python Crypto library is at: http://www.dlitz.net/software/pycrypto/
   # Needed for RIPEMD160 hash function, used to compute
@@ -55,6 +74,12 @@ def hash_160_to_bc_address(h160):
   addr=vh160+h3[0:4]
   return b58encode(addr)
 
+def bc_address_to_hash_160(addr):
+  b58 = (addr[1:])[:-4] # Strip off version, checksum digits
+  return b58decode(b58, 20)
+
 if __name__ == '__main__':
     x = '005cc87f4a3fdfe3a2346b6953267ca867282630d3f9b78e64'.decode('hex_codec')
-    print b58encode(x), '19TbMSWwHvnxAKy12iNm3KdbGfzfaMFViT'
+    encoded = b58encode(x)
+    print encoded, '19TbMSWwHvnxAKy12iNm3KdbGfzfaMFViT'
+    print b58decode(encoded, len(x)).encode('hex_codec'), x.encode('hex_codec')

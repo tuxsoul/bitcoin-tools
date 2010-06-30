@@ -45,8 +45,6 @@ def main():
     logging.error("Couldn't open "+DB_DIR)
     sys.exit(1)
 
-  import pdb; pdb.set_trace()
-
   if options.dump_wallet or options.dump_wallet_tx:
     dump_wallet(db_env, options.dump_wallet, options.dump_wallet_tx)
 

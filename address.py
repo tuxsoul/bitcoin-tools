@@ -17,9 +17,13 @@ from deserialize import *
 
 def dump_addresses(db_env):
   db = DB(db_env)
-  r = db.open("addr.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
+  try:
+    r = db.open("addr.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
+  except DBError:
+    r = True
+
   if r is not None:
-    logging.error("Couldn't open addr.dat/main")
+    logging.error("Couldn't open addr.dat/main. Try quitting Bitcoin and running this again.")
     sys.exit(1)
 
   kds = BCDataStream()

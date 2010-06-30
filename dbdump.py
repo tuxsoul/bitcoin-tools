@@ -8,8 +8,7 @@ import sys
 
 from address import dump_addresses
 from wallet import dump_wallet
-from blocks import dump_blockindex
-from transactions import dump_transactions
+from blkindex import dump_blkindex_summary
 
 def determine_db_dir():
   import os
@@ -26,8 +25,8 @@ def main():
   parser = optparse.OptionParser(usage="%prog [options]")
   parser.add_option("--wallet", action="store_true", dest="dump_wallet", default=False,
                     help="Print out contents of the wallet.dat file")
-  parser.add_option("--blocks", action="store_true", dest="dump_blocks", default=False,
-                    help="Print out contents of the blkindex.dat file")
+  parser.add_option("--blkindex", action="store_true", dest="dump_blkindex", default=False,
+                    help="Print out summary of blkindex.dat file")
   parser.add_option("--wallet-tx", action="store_true", dest="dump_wallet_tx", default=False,
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
@@ -51,8 +50,8 @@ def main():
   if options.dump_addr:
     dump_addresses(db_env)
 
-  if options.dump_blocks:
-    dump_blockindex(db_env)
+  if options.dump_blkindex:
+    dump_blkindex_summary(db_env)
 
   db_env.close()
 

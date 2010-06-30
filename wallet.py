@@ -15,9 +15,13 @@ from deserialize import *
 
 def dump_wallet(db_env, print_wallet, print_wallet_transactions):  
   db = DB(db_env)
-  r = db.open("wallet.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
+  try:
+    r = db.open("wallet.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
+  except DBError:
+    r = True
+
   if r is not None:
-    logging.error("Couldn't open wallet.dat/main")
+    logging.error("Couldn't open wallet.dat/main. Try quitting Bitcoin and running this again.")
     sys.exit(1)
 
   kds = BCDataStream()

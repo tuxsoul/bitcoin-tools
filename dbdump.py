@@ -32,8 +32,6 @@ def main():
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
                     help="Print addresses in the addr.dat file")
-  parser.add_option("--transactions", action="store", dest="owner_transactions", default=None,
-                    help="Print transactions for given Bitcoin address")
   (options, args) = parser.parse_args()
 
   db_dir = determine_db_dir()
@@ -57,9 +55,6 @@ def main():
 
   if options.dump_blocks:
     dump_blockindex(db_env)
-
-  if options.owner_transactions is not None:
-    dump_transactions(db_env, owner=options.owner_transactions)
 
   db_env.close()
 

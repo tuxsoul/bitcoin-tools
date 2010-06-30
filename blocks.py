@@ -40,14 +40,7 @@ def dump_blockindex(db_env, owner=None, n_to_dump=1000):
 
     type = kds.read_string()
 
-    if type == "owner":
-      hash160 = kds.read_bytes(20)
-      pos = _read_CDiskTxPos(vds)
-      height = kds.read_int32()
-      print("TxOwner(%s: %d %d %d) height %d"%
-            (hash_160_to_bc_address(hash160), pos[0], pos[1], pos[2], height))
-
-    elif type == "tx":
+    if type == "tx":
       hash256 = kds.read_bytes(32)
       version = vds.read_uint32()
       tx_pos = _read_CDiskTxPos(vds)

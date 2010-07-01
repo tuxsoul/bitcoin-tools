@@ -31,10 +31,12 @@ tx : key continues with uint256 transaction hash/id (32 bytes)
   CDiskTxPos : location of transaction (in the blk000N.dat files)
   vector<CDiskTxPos> : location of transactions that spend this transaction's inputs
 
+blockindex : key continues with uint256 block hash (32 bytes)
+ value is serialized CDiskBlockIndex
 
-owner : key continues with hash160 pubkey hash and CDiskTxPos.
- value is:
-  uint32 : height  of this transaction in the longest block chain
+version : value is integer version number
+
+hashBestChain : value is 32-byte SHA256 hash of last block in the longest block chain.
 
 
 wallet.dat serialization notes:
@@ -82,8 +84,21 @@ Complex value type serialization:
 
 CDiskTxPos:
   uint32 nFile       : Which of the blk000*.dat files
-  uint32 nBlockPos   : Which block in that file
-  uint32 nTxPos      : Which transaction in the block
+  uint32 nBlockPos   : Byte position in file
+  uint32 nTxPos      : Byte position in file
+
+CDiskBlockIndex:
+  int nVersion
+  uint256 hashNext
+  uint32 nFile       : Which of the blk000*.dat files
+  uint32 nBlockPos   : Byte position in file
+  int nHeight        : height in block chain
+  int blockVersion   :  ??? Not sure why version is repeated...
+  uint256 hashPrev
+  uint256 hashMerkleRoot
+  uint32 nTime
+  uint32 nBits
+  uint32 nNonce
 
 CAddress:
   int nVersion

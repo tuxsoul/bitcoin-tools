@@ -4,7 +4,7 @@
 
 from BCDataStream import *
 from enumeration import Enumeration
-from base58 import public_key_to_bc_address
+from base58 import public_key_to_bc_address, hash_160_to_bc_address
 import socket
 import time
 from util import short_hex
@@ -36,16 +36,22 @@ def deserialize_TxIn(vds):
   sequence = vds.read_uint32()
   if prevout_hash == "\x00"*32:
     result = "TxIn: COIN GENERATED"
-    result += " coinbase:"+short_hex(scriptSig)
+    result += " coinbase:"+scriptSig.encode('hex_codec')
   else:
     result = "TxIn: prev("+short_hex(prevout_hash)+":"+str(prevout_n)+")"
+    pk = extract_public_key(scriptSig)
+    result += " pubkey: "+pk
     result += " sig: "+decode_script(scriptSig)
   if sequence < 0xffffffff: result += " sequence: "+hex(sequence)
   return result
 def deserialize_TxOut(vds):
   value = vds.read_int64()
   scriptPubKey = vds.read_bytes(vds.read_compact_size())
-  return "TxOut: value: %.2f "%(value/1.0e8,)+"Script: "+decode_script(scriptPubKey)
+  result =  "TxOut: value: %.2f"%(value/1.0e8,)
+  pk = extract_public_key(scriptPubKey)
+  result += " pubkey: "+pk
+  result += " Script: "+decode_script(scriptPubKey)
+  return result
 def deserialize_Transaction(vds):
   version = vds.read_int32()
   n_vin = vds.read_compact_size()
@@ -153,8 +159,42 @@ def decode_script(bytes):
   for (opcode, vch) in script_GetOp(bytes):
     if len(result) > 0: result += " "
     if opcode <= opcodes.OP_PUSHDATA4:
+      result += "%d:"%(opcode,)
       result += short_hex(vch)
     else:
       result += script_GetOpName(opcode)
   return result
 
+def match_decoded(decoded, to_match):
+  if len(decoded) != len(to_match):
+    return False;
+  for i in range(len(decoded)):
+    if to_match[i] == opcodes.OP_PUSHDATA4 and decoded[i][0] <= opcodes.OP_PUSHDATA4:
+      continue  # Opcodes below OP_PUSHDATA4 all just push data onto stack, and are equivalent.
+    if to_match[i] != decoded[i][0]:
+      return False
+  return True
+
+def extract_public_key(bytes):
+  decoded = [ x for x in script_GetOp(bytes) ]
+
+  # non-generated TxIn transactions push a signature
+  # (seventy-something bytes) and then their public key
+  # (65 bytes) onto the stack:
+  match = [ opcodes.OP_PUSHDATA4, opcodes.OP_PUSHDATA4 ]
+  if match_decoded(decoded, match):
+    return public_key_to_bc_address(decoded[1][1])
+
+  # The Genesis Block, self-payments, and pay-by-IP-address payments look like:
+  # 65 BYTES:... CHECKSIG
+  match = [ opcodes.OP_PUSHDATA4, opcodes.OP_CHECKSIG ]
+  if match_decoded(decoded, match):
+    return public_key_to_bc_address(decoded[0][1])
+
+  # Pay-by-Bitcoin-address TxOuts look like:
+  # DUP HASH160 20 BYTES:... EQUALVERIFY CHECKSIG
+  match = [ opcodes.OP_DUP, opcodes.OP_HASH160, opcodes.OP_PUSHDATA4, opcodes.OP_EQUALVERIFY, opcodes.OP_CHECKSIG ]
+  if match_decoded(decoded, match):
+    return hash_160_to_bc_address(decoded[2][1])
+
+  return "(None)"

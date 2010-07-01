@@ -32,7 +32,7 @@ def main():
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
                     help="Print addresses in the addr.dat file")
-  parser.add_option("--transaction", action="store", dest="dump_transaction", default=False,
+  parser.add_option("--transaction", action="store", dest="dump_transaction", default=None,
                     help="Dump a single transaction, given hex transaction id (or abbreviated id)")
   (options, args) = parser.parse_args()
 

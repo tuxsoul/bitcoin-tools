@@ -102,6 +102,21 @@ def deserialize_WalletTx(vds):
   result += "\n"+" timeReceived:"+time.ctime(timeReceived)+" fromMe:"+str(fromMe)+" spent:"+str(spent)
   return (timeReceived, result)
 
+def deserialize_Block(vds):
+  version = vds.read_int32()
+  hashPrev = vds.read_bytes(32)
+  hashMerkleRoot = vds.read_bytes(32)
+  nTime = vds.read_uint32()
+  nBits = vds.read_uint32()
+  nNonce = vds.read_uint32()
+  nTransactions = vds.read_compact_size()
+  result = "Time: "+time.ctime(nTime)
+  result += "\nPrevious block: "+hashPrev.encode('hex_codec')
+  result += "\n%d transactions:\n"%(nTransactions,)
+  for i in range(0, nTransactions):
+    result += deserialize_Transaction(vds)+"\n"
+  return result
+
 opcodes = Enumeration("Opcodes", [
     ("OP_0", 0), ("OP_PUSHDATA1",76), "OP_PUSHDATA2", "OP_PUSHDATA4", "OP_1NEGATE", "OP_RESERVED",
     "OP_1", "OP_2", "OP_3", "OP_4", "OP_5", "OP_6", "OP_7",

@@ -100,6 +100,18 @@ CDiskBlockIndex:
   uint32 nBits
   uint32 nNonce
 
+CBlock:
+    # Note:   4 bytes: f9 be b4 d9  are written before records in blk000N.dat files
+    # But the nBlockPos pointers in CDiskBlockIndex points to start of serializedSize
+  int serializedSize
+  int version
+  uint256 hashPrev
+  uint256 hashMerkleRoot
+  uint32 nTime
+  uint32 nBits
+  uint32 nNonce
+  vector<CTransaction>
+
 CAddress:
   int nVersion
   unsigned int nTime

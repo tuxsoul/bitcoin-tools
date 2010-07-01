@@ -10,6 +10,7 @@ from address import dump_addresses
 from wallet import dump_wallet
 from blkindex import dump_blkindex_summary
 from transaction import dump_transaction
+from block import dump_block
 
 def determine_db_dir():
   import os
@@ -34,6 +35,8 @@ def main():
                     help="Print addresses in the addr.dat file")
   parser.add_option("--transaction", action="store", dest="dump_transaction", default=None,
                     help="Dump a single transaction, given hex transaction id (or abbreviated id)")
+  parser.add_option("--block", action="store", dest="dump_block", default=None,
+                    help="Dump a single block, given its hex hash (or abbreviated hex hash)")
   (options, args) = parser.parse_args()
 
   db_dir = determine_db_dir()
@@ -58,6 +61,9 @@ def main():
 
   if options.dump_transaction is not None:
     dump_transaction(db_dir, db_env, options.dump_transaction)
+
+  if options.dump_block is not None:
+    dump_block(db_dir, db_env, options.dump_block)
 
   db_env.close()
 

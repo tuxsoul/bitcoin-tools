@@ -9,6 +9,7 @@ import sys
 from address import dump_addresses
 from wallet import dump_wallet
 from blkindex import dump_blkindex_summary
+from transaction import dump_transaction
 
 def determine_db_dir():
   import os
@@ -31,6 +32,8 @@ def main():
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
                     help="Print addresses in the addr.dat file")
+  parser.add_option("--transaction", action="store", dest="dump_transaction", default=False,
+                    help="Dump a single transaction, given hex transaction id (or abbreviated id)")
   (options, args) = parser.parse_args()
 
   db_dir = determine_db_dir()
@@ -52,6 +55,9 @@ def main():
 
   if options.dump_blkindex:
     dump_blkindex_summary(db_env)
+
+  if options.dump_transaction is not None:
+    dump_transaction(db_dir, db_env, options.dump_transaction)
 
   db_env.close()
 

@@ -3,6 +3,7 @@
 #
 import struct
 import StringIO
+import mmap
 
 class SerializationError(Exception):
   """ Thrown when there's a problem deserializing or serializing """
@@ -16,11 +17,17 @@ class BCDataStream(object):
     self.input = None
     self.read_cursor = 0
 
-  def write(self, bytes):
+  def write(self, bytes):  # Initialize with string of bytes
     if self.input is None:
       self.input = bytes
     else:
       self.input += bytes
+
+  def map_file(self, file, start):  # Initialize with bytes from file
+    self.input = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
+    self.read_cursor = start
+  def close_file(self):
+    self.input.close()
 
   def read_string(self):
     # Strings are encoded depending on length:

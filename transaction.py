@@ -51,8 +51,6 @@ def dump_transaction(datadir, db_env, tx_id):
   cursor = db.cursor()
   (key, value) = cursor.set_range(key_prefix)
 
-  import pdb; pdb.set_trace()
-
   while key.startswith(key_prefix):
     kds.clear(); kds.write(key)
     vds.clear(); vds.write(value)

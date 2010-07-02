@@ -11,8 +11,6 @@ class Tests(unittest.TestCase):
     self.ds = BCDataStream.BCDataStream()
 
   def testString(self):
-    import pdb; pdb.set_trace()
-
     t = {
       "\x07setting" : "setting",
       "\xfd\x00\x07setting" : "setting",

@@ -1,9 +1,18 @@
 Run    dbdump.py --help    for usage.  Database files are opened read-only, but
 you might want to backup your Bitcoin wallet.dat file just in case.
 
+You must quit Bitcoin before reading the transactions, blocks, or address database files.
+
 Requires the pycrypto library from  http://www.dlitz.net/software/pycrypto/
 to translate public keys into human-friendly Bitcoin addresses.
 
-TODO: anybody want to volunteer to write code to dump out sections of the blkindex.dat/blk000n.dat block data files?
-It should be fairly straightforward to reverse engineer from the Bitcoin source...
+Examples:
 
+Print out  wallet keys and transactions:
+  dbdump.py --wallet --wallet-tx
+
+Print out the "genesis block" (the very first block in the proof-of-work block chain):
+  dbdump.py --block=27edfeb3b3c3b72a57c460a0d7bfceaa98c0d8c59fbca196910fdc0800000000
+
+Print out one of the transactions from my wallet:
+  dbdump.py --transaction=c90a...9213

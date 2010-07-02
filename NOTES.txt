@@ -6,19 +6,40 @@ My first two transactions look like this:
 ==WalletTransaction== f240...2582
 Merkle hashBlock: 6d40...0000
 1 tx in, 1 out
-['TxIn: prev(e9d4...d2f4:0) sig: 3045...1a01 0403...7b86']
-['TxOut: value: 500.00 Script: DUP HASH160 61e4...614c EQUALVERIFY CHECKSIG']
+['TxIn: prev(e9d4...d2f4:0) pubkey: 1Lfic7L3z7xUbxRDvMNFiE3QxKRmSSrvEH sig: 72:3045...1a01 65:0403...7b86']
+['TxOut: value: 500.00 pubkey: 19vcWM6EEbQHVdN2W8NXv9ySgsPjbZ6gU3 Script: DUP HASH160 20:61e4...614c EQUALVERIFY CHECKSIG']
  timeReceived:Thu May 27 14:25:48 2010 fromMe:True spent:True
+
 ==WalletTransaction== f961...4472
 Merkle hashBlock: 7707...0000
 1 tx in, 2 out
-['TxIn: prev(f240...2582:0) sig: 3045...a801 04a6...a541']
-['TxOut: value: 142.40 Script: DUP HASH160 2e8d...5179 EQUALVERIFY CHECKSIG', 'TxOut: value: 357.60 Script: DUP HASH160 6cc4...1755 EQUALVERIFY CHECKSIG']
+['TxIn: prev(f240...2582:0) pubkey: 19vcWM6EEbQHVdN2W8NXv9ySgsPjbZ6gU3 sig: 72:3045...a801 65:04a6...a541']
+['TxOut: value: 142.40 pubkey: 15F9miF9egehbeCiPKVSJSwgw5J96my7Rf Script: DUP HASH160 20:2e8d...5179 EQUALVERIFY CHECKSIG', 'TxOut: value: 357.60 pubkey: 1Av6tJSFv3bZvUfaALm4TQZmYvdeuHcbUb Script: DUP HASH160 20:6cc4...1755 EQUALVERIFY CHECKSIG']
  timeReceived:Fri May 28 13:55:23 2010 fromMe:True spent:True
 
-So: I recieved 500.00 bitcoins from whoever was the recipient of transaction with transaction ID e9d4...d2f4:0
+So: whoever has sending bc address 1Lfic7L3z7xUbxRDvMNFiE3QxKRmSSrvEH sent 500 bitcoins to
+my 19vcWM6EEbQHVdN2W8NXv9ySgsPjbZ6gU3 receiving address.
 
-I then sent 142.40 to somebody (their bcaddress is, in hex, 2e8d...5179).  And got 357.60 in change.
+I then sent 142.40 to bcaddress 15F9miF9egehbeCiPKVSJSwgw5J96my7Rf.
+And got 357.60 in change (Bitcoin created a new address for the change:  1Av6tJSFv3bZvUfaALm4TQZmYvdeuHcbUb)
+
+Spending generated coins looks different:
+
+Transaction 6403...cc0e
+['TxIn: COIN GENERATED coinbase:0464ba0e1c010a']
+['TxOut: value: 50.00 pubkey: 1Cpr8WJYa5igdo8AtPS24hfVLkk6ANZSWN Script: 65:0442...11c2 CHECKSIG']
+
+Transaction db39...8dcd:
+['TxIn: COIN GENERATED coinbase:0464ba0e1c0130']
+['TxOut: value: 50.00 pubkey: 1LuamEE1rL1QAdgn48gGFD9T9mnqSeP17w Script: 65:04f2...e10f CHECKSIG']
+
+==WalletTransaction== 3860...f888
+['TxIn: prev(6403...cc0e:0) pubkey: (None) sig: 72:3045...f501', 'TxIn: prev(db39...8dcd:0) pubkey: (None) sig: 73:3046...9\
+601']
+['TxOut: value: 100.00 pubkey: 1BBWNxMqU2bTwSVeUDVKmNYJrWr4D1pBrf Script: DUP HASH160 20:6fad...ab90 EQUALVERIFY CHECKSIG']
+
+Here I received 100 bitcoins from two 50 COIN GENERATED transactions.
+
 
 blkindex.dat serialization notes:
 ---------------------------------

@@ -89,7 +89,7 @@ def deserialize_WalletTx(vds):
     mapValue[key] = value
   n_orderForm = vds.read_compact_size()
   orderForm = []
-  for i in xrange(n_mapValue):
+  for i in xrange(n_orderForm):
     first = vds.read_string()
     second = vds.read_string()
     orderForm.append( (first, second) )

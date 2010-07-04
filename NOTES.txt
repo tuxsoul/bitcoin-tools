@@ -179,6 +179,14 @@ CWalletTx:
   char fFromMe
   char fSpent
 
+CInv:
+  int type   :   1:tx   2:block
+  uint256 hash
+
+CBlockLocator:
+  int nVersion
+  vector<uint256>    # Block hashes, newest back to genesis block (dense to start, but then sparse)
+
 string:
   1/3/5/9 bytes giving length:
     1 byte if length < 253.
@@ -247,3 +255,67 @@ Result length should be:  int(math.floor(len(addr)*8/math.log(58,2)))
 Base58 encode that, front-pad with '1's if less than expected length
 to get:   19TbMSWwHvnxAKy12iNm3KdbGfzfaMFViT
 
+
+WIRE PROTOCOL NOTES
+-------------------
+Default port is 8333
+
+// Message format                                                                                                       
+//  (4) message start    { 0xf9, 0xbe, 0xb4, 0xd9 }
+//  (12) command
+//  (4) size       -- number of bytes of data
+//  (4) checksum   -- First four bytes of double SHA256 hash of data
+//  (x) data
+
+ --> messages might be split by network layer...
+
+Commands are:
+
+"version" :
+  int nVersion
+  uint64 nServices
+  int64 nTime
+  CAddress addrMe
+  CAddress addrFrom   # if nVersion > 106
+  uint64 nNonce
+  string strSubVer    # if nVersion > 106
+  int nStartingHeight # if nVersion > 209
+
+nNonce is random value (I think), used to detect self-connection.
+
+"verack" : no data.  Sent to sync min version (peer, peer)
+
+"addr" :
+  vector<CAddress>
+      (relayed to 10 random nodes so they spread)
+
+"inv" :
+  vector<CInv>
+
+"getdata" :   Asks for blocks or tx's (response is "block" or "tx" messages)
+  vector<CInv>
+
+"getblocks" :
+  CBLockLocator
+  uint256 hashStop
+
+"tx" :
+  CTransaction
+
+"block" :
+  CBlock
+
+"getaddr" : no data ("please send me addr messages")
+
+"checkorder"
+  uint256 hashReply
+  CWalletTx order
+
+"submitorder"
+  uint256 hashReply
+  CWalletTx wtxNew
+
+"reply"
+  uint256 hashReply
+
+"ping" : no data (and no reply)

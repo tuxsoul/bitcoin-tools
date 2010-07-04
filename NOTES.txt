@@ -319,3 +319,18 @@ nNonce is random value (I think), used to detect self-connection.
   uint256 hashReply
 
 "ping" : no data (and no reply)
+
+
+TRANSACTION SIGNING NOTES
+-------------------------
+
+So, I want to spend some bitcoin.
+First, I gotta have a Transaction to me-- specifically, a Transaction with a TxOut that contains a scriptPubKey that I can satisfy.
+
+TxOut.scriptPubKey's come in a couple different flavors:
+ DUP HASH160 {hash160(public_key) EQUALVERIFY CHECKSIG
+   --> I have to be able to supply a matching TxIn.scriptSig with: signature and public key
+ (public key) CHECKSIG
+   --> I have to supply a matching TxIn.scriptSig with: signature
+
+TODO: figure out what, exactly, is hashed (and how), and how, exactly, that hash value is signed with the private key.

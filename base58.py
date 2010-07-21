@@ -69,6 +69,8 @@ def public_key_to_bc_address(public_key):
   return hash_160_to_bc_address(h160)
 
 def hash_160_to_bc_address(h160):
+  if not have_crypto:
+    return ''
   vh160 = "\x00"+h160  # \x00 is version 0
   h3=SHA256.new(SHA256.new(vh160).digest()).digest()
   addr=vh160+h3[0:4]

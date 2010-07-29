@@ -25,6 +25,8 @@ def determine_db_dir():
 def main():
   import optparse
   parser = optparse.OptionParser(usage="%prog [options]")
+  parser.add_option("--datadir", dest="datadir", default=None,
+                    help="Look for files here (defaults to bitcoin default)")
   parser.add_option("--wallet", action="store_true", dest="dump_wallet", default=False,
                     help="Print out contents of the wallet.dat file")
   parser.add_option("--blkindex", action="store_true", dest="dump_blkindex", default=False,
@@ -39,7 +41,10 @@ def main():
                     help="Dump a single block, given its hex hash (or abbreviated hex hash)")
   (options, args) = parser.parse_args()
 
-  db_dir = determine_db_dir()
+  if options.datadir is None:
+    db_dir = determine_db_dir()
+  else:
+    db_dir = options.datadir
 
   db_env = DBEnv(0)
   r = db_env.open(db_dir,

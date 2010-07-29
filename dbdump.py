@@ -10,7 +10,7 @@ from address import dump_addresses
 from wallet import dump_wallet
 from blkindex import dump_blkindex_summary
 from transaction import dump_transaction
-from block import dump_block, dump_block_n
+from block import dump_block, dump_block_n, search_blocks
 
 def determine_db_dir():
   import os
@@ -39,6 +39,8 @@ def main():
                     help="Dump a single transaction, given hex transaction id (or abbreviated id)")
   parser.add_option("--block", action="store", dest="dump_block", default=None,
                     help="Dump a single block, given its hex hash (or abbreviated hex hash) OR block height")
+  parser.add_option("--search-blocks", action="store", dest="search_blocks", default=None,
+                    help="Search the block chain for blocks containing given regex pattern")
   (options, args) = parser.parse_args()
 
   if options.datadir is None:
@@ -75,6 +77,9 @@ def main():
         dump_block(db_dir, db_env, options.dump_block)
     else:
       dump_block(db_dir, db_env, options.dump_block)
+
+  if options.search_blocks is not None:
+    search_blocks(db_dir, db_env, options.search_blocks)
 
   db_env.close()
 

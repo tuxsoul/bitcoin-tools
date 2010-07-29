@@ -29,6 +29,22 @@ def _dump_block(datadir, nFile, nBlockPos, hash256, hashNext):
   ds.close_file()
   blockfile.close()
 
+def _deserialize_block_index(vds):
+  result = {}
+  result['version'] = vds.read_int32()
+  result['hashNext'] = vds.read_bytes(32)
+  result['nFile'] = vds.read_uint32()
+  result['nBlockPos'] = vds.read_uint32()
+  result['nHeight'] = vds.read_int32()
+
+  result['b_version'] = vds.read_int32()
+  result['hashPrev'] = vds.read_bytes(32)
+  result['hashMerkle'] = vds.read_bytes(32)
+  result['nTime'] = vds.read_int32()
+  result['nBits'] = vds.read_int32()
+  result['nNonce'] = vds.read_int32()
+  return result
+
 def dump_block(datadir, db_env, block_hash):
   """ Dump a block, given hexadecimal hash-- either the full hash
       OR a short_hex version of the it.
@@ -59,23 +75,50 @@ def dump_block(datadir, db_env, block_hash):
 
     type = kds.read_string()
     hash256 = kds.read_bytes(32)
-    version = vds.read_int32()
-    hashNext = vds.read_bytes(32)
-    nFile = vds.read_uint32()
-    nBlockPos = vds.read_uint32()
-    nHeight = vds.read_int32()
-
-    b_version = vds.read_int32()
-    hashPrev = vds.read_bytes(32)
-    hashMerkle = vds.read_bytes(32)
-    nTime = vds.read_int32()
-    nBits = vds.read_int32()
-    nNonce = vds.read_int32()
+    block_data = _deserialize_block_index(vds)
 
     if (hash256.encode('hex_codec')).startswith(block_hash) or short_hex(hash256).startswith(block_hash):
-      _dump_block(datadir, nFile, nBlockPos, hash256, hashNext)
+      print "Block height: "+str(block_data['nHeight'])
+      _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'], hash256, block_data['hashNext'])
 
     (key, value) = cursor.next()
 
   db.close()
 
+def read_block(db_cursor, hash):
+  (key,value) = db_cursor.set_range("\x0ablockindex"+hash)
+  vds = BCDataStream()
+  vds.clear(); vds.write(value)
+  block_data = _deserialize_block_index(vds)
+  block_data['hash256'] = hash
+  return block_data
+
+def dump_block_n(datadir, db_env, block_number):
+  """ Dump a block given block number (== height, genesis block is 0)
+  """
+  db = DB(db_env)
+  try:
+    r = db.open("blkindex.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
+  except DBError:
+    r = True
+
+  if r is not None:
+    logging.error("Couldn't open blkindex.dat/main.  Try quitting any running Bitcoin apps.")
+    sys.exit(1)
+
+  kds = BCDataStream()
+  vds = BCDataStream()
+  
+  # Read the hashBestChain record:
+  cursor = db.cursor()
+  (key, value) = cursor.set_range("\x0dhashBestChain")
+  vds.write(value)
+  hashBestChain = vds.read_bytes(32)
+
+  block_data = read_block(cursor, hashBestChain)
+
+  while block_data['nHeight'] > block_number:
+    block_data = read_block(cursor, block_data['hashPrev'])
+
+  print "Block height: "+str(block_data['nHeight'])
+  _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'], block_data['hash256'], block_data['hashNext'])

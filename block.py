@@ -134,8 +134,12 @@ def search_blocks(datadir, db_env, pattern):
   (key, value) = cursor.set_range("\x0dhashBestChain")
   vds.write(value)
   hashBestChain = vds.read_bytes(32)
-
   block_data = read_block(cursor, hashBestChain)
+
+  if pattern == "NONSTANDARD_CSCRIPTS": # Hack to look for non-standard transactions
+    search_odd_scripts(datadir, cursor, block_data)
+    return
+
   while True:
     block_string = _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'],
                                block_data['hash256'], block_data['hashNext'], False)
@@ -148,5 +152,35 @@ def search_blocks(datadir, db_env, pattern):
       break
     block_data = read_block(cursor, block_data['hashPrev'])
     
+def search_odd_scripts(datadir, cursor, block_data):
+  """ Look for non-standard transactions """
+  while True:
+    block_string = _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'],
+                               block_data['hash256'], block_data['hashNext'], False)
+    
+    found_nonstandard = False
+    for m in re.finditer("'TxIn:(.*?)'", block_string):
+      s = m.group(1)
+      if re.match(r'\s*COIN GENERATED coinbase:\w+$', s): continue
+      if re.match(r'.*sig: \d+:\w+...\w+ \d+:\w+...\w+$', s): continue
+      if re.match(r'.*sig: \d+:\w+...\w+$', s): continue
+      print "Nonstandard TxIn: "+s
+      found_nonstandard = True
+      break
 
+    for m in re.finditer("'TxOut:(.*?)'", block_string):
+      s = m.group(1)
+      if re.match(r'.*Script: DUP HASH160 \d+:\w+...\w+ EQUALVERIFY CHECKSIG$', s): continue
+      if re.match(r'.*Script: \d+:\w+...\w+ CHECKSIG$', s): continue
+      print "Nonstandard TxOut: "+s
+      found_nonstandard = True
+      break
+
+    if found_nonstandard:
+      print "NONSTANDARD TXN: Block height: "+str(block_data['nHeight'])
+      print block_string
+
+    if block_data['nHeight'] == 0:
+      break
+    block_data = read_block(cursor, block_data['hashPrev'])
   

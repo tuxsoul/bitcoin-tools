@@ -334,3 +334,15 @@ TxOut.scriptPubKey's come in a couple different flavors:
    --> I have to supply a matching TxIn.scriptSig with: signature
 
 TODO: figure out what, exactly, is hashed (and how), and how, exactly, that hash value is signed with the private key.
+
+DIFFICULTY, NBITS, BN_mpi2bn
+----------------------------
+
+Hash targets are stored as "compact bignums;" the production block chain has an initial target of:
+0x1d00ffff  ... which means "create a bignum that is 0x1d (29) bytes long and has 0x00ffff as the
+three bytes on the big end."  Or: 0xffff0000000000000000000000000000000000000000000000000000
+
+As I write this, the current block->nBits is 0x1c010c5.  To compute difficulty:
+  php -r '$nBits = 0x1c010c5a; print( (0xffff << ((0x1d-($nBits>>24))*8)) / ($nBits&0xffffff) );'
+
+

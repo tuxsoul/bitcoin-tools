@@ -111,6 +111,7 @@ def deserialize_Block(vds):
   nNonce = vds.read_uint32()
   nTransactions = vds.read_compact_size()
   result = "Time: "+time.ctime(nTime)+" Nonce: "+str(nNonce)
+  result += "\nnBits: 0x"+hex(nBits)
   result += "\nPrevious block: "+hashPrev.encode('hex_codec')
   result += "\n%d transactions:\n"%(nTransactions,)
   for i in range(0, nTransactions):

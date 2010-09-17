@@ -16,3 +16,9 @@ Print out the "genesis block" (the very first block in the proof-of-work block c
 
 Print out one of the transactions from my wallet:
   dbdump.py --transaction=c90a...9213
+
+Print out all blocks involving transactions to the Bitcoin Faucet:
+  dbdump.py --search-blocks=15VjRaDX9zpbA8LVnbrCAFzrVzN7ixHNsC
+
+There's a special search term to look for non-standard transactions:
+  dbdump.py --search-blocks=NONSTANDARD_CSCRIPTS

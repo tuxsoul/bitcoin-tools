@@ -55,7 +55,7 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
     elif type == "setting":
       setting = kds.read_string()
       value = deserialize_setting(setting, vds)
-      print(setting+": "+value)
+      print(setting+": "+str(value))
     elif type == "key":
       public_key = kds.read_bytes(kds.read_compact_size())
       private_key = vds.read_bytes(vds.read_compact_size())
@@ -73,6 +73,12 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
     elif type == "defaultkey":
       key = vds.read_bytes(vds.read_compact_size())
       print("Default Key: 0x"+ short_hex(key) + " " + public_key_to_bc_address(key))
+    elif type == "pool":
+      n = kds.read_int64()
+      nVersion = vds.read_int32()
+      nTime = vds.read_int64()
+      public_key = vds.read_bytes(vds.read_compact_size())
+      print("Change Pool key: "+public_key_to_bc_address(public_key))
     else:
       print "Unknown key type: "+type
 

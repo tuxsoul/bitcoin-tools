@@ -8,7 +8,7 @@ __b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 __b58base = len(__b58chars)
 
 def b58encode(v):
-  """ encode v, which is a little-endian string of bytes, to base58.    
+  """ encode v, which is a string of bytes, to base58.    
   """
 
   long_value = 0L
@@ -22,13 +22,17 @@ def b58encode(v):
     long_value = div
   result = __b58chars[long_value] + result
 
-  # Pad front with Base58-encoded-0 for leading zeros:
-  nPad = int((len(v)*8 / (math.log(58,2))) - len(result))
+  # Bitcoin does a little leading-zero-compression:
+  # leading 0-bytes in the input become leading-1s
+  nPad = 0
+  for c in v:
+    if c == '\0': nPad += 1
+    else: break
 
   return (__b58chars[0]*nPad) + result
 
 def b58decode(v, length):
-  """ decode v into a little-endian string of len bytes
+  """ decode v into a string of len bytes
   """
   long_value = 0L
   for (i, c) in enumerate(v[::-1]):
@@ -40,9 +44,15 @@ def b58decode(v, length):
     result = chr(mod) + result
     long_value = div
   result = chr(long_value) + result
-  if len(result) < length:
-    n_pad = length-len(result)
-    result = chr(0)*n_pad + result
+
+  nPad = 0
+  for c in v:
+    if c == __b58chars[0]: nPad += 1
+    else: break
+
+  result = chr(0)*nPad + result
+  if length is not None and len(result) != length:
+    return None
 
   return result
 
@@ -77,8 +87,8 @@ def hash_160_to_bc_address(h160):
   return b58encode(addr)
 
 def bc_address_to_hash_160(addr):
-  b58 = (addr[1:])[:-4] # Strip off version, checksum digits
-  return b58decode(b58, 20)
+  bytes = b58decode(addr, 25)
+  return bytes[1:21]
 
 if __name__ == '__main__':
     x = '005cc87f4a3fdfe3a2346b6953267ca867282630d3f9b78e64'.decode('hex_codec')

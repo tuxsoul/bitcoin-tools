@@ -78,7 +78,7 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
       nVersion = vds.read_int32()
       nTime = vds.read_int64()
       public_key = vds.read_bytes(vds.read_compact_size())
-      print("Change Pool key: "+public_key_to_bc_address(public_key))
+      print("Change Pool key %d: %s (Time: %s)"% (n, public_key_to_bc_address(public_key), time.ctime(nTime)))
     else:
       print "Unknown key type: "+type
 

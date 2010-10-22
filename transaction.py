@@ -47,7 +47,7 @@ def dump_transaction(datadir, db_env, tx_id):
   n_tx = 0
   n_blockindex = 0
 
-  key_prefix = "\x02tx"+(tx_id[0:4].decode('hex_codec'))
+  key_prefix = "\x02tx"+(tx_id[::-1][0:4].decode('hex_codec'))
   cursor = db.cursor()
   (key, value) = cursor.set_range(key_prefix)
 
@@ -57,9 +57,10 @@ def dump_transaction(datadir, db_env, tx_id):
 
     type = kds.read_string()
     hash256 = (kds.read_bytes(32))
+    hash_hex = long_hex(hash256[::-1])
     version = vds.read_uint32()
     tx_pos = _read_CDiskTxPos(vds)
-    if (hash256.encode('hex_codec')).startswith(tx_id) or short_hex(hash256).startswith(tx_id):
+    if (hash_hex.startswith(tx_id) or short_hex(hash256[::-1]).startswith(tx_id)):
       _dump_tx(datadir, hash256, tx_pos)
 
     (key, value) = cursor.next()

@@ -38,7 +38,6 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
     if type == "tx":
       tx_id = kds.read_bytes(32)
       (when, value) = deserialize_WalletTx(vds)
-      t = long_hex(tx_id)
       wallet_transactions.append( (when, tx_id, value) )
       continue
 
@@ -84,7 +83,7 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
 
   if print_wallet_transactions:
     for (t, tx_id, tx_value) in sorted(wallet_transactions, key=itemgetter(0)):
-      print("==WalletTransaction== "+long_hex(tx_id))
+      print("==WalletTransaction== "+long_hex(tx_id[::-1]))
       print(tx_value)
 
   db.close()

@@ -7,7 +7,7 @@ from enumeration import Enumeration
 from base58 import public_key_to_bc_address, hash_160_to_bc_address
 import socket
 import time
-from util import short_hex
+from util import short_hex, long_hex
 
 def deserialize_CAddress(vds):
   version = vds.read_int32()
@@ -38,7 +38,7 @@ def deserialize_TxIn(vds):
     result = "TxIn: COIN GENERATED"
     result += " coinbase:"+scriptSig.encode('hex_codec')
   else:
-    result = "TxIn: prev("+short_hex(prevout_hash)+":"+str(prevout_n)+")"
+    result = "TxIn: prev("+long_hex(prevout_hash[::-1])+":"+str(prevout_n)+")"
     pk = extract_public_key(scriptSig)
     result += " pubkey: "+pk
     result += " sig: "+decode_script(scriptSig)
@@ -73,7 +73,7 @@ def deserialize_MerkleTx(vds):
   n_merkleBranch = vds.read_compact_size()
   merkleBranch = vds.read_bytes(32*n_merkleBranch)
   nIndex = vds.read_int32()
-  result = "Merkle hashBlock: "+short_hex(hashBlock)+"\n" + result
+  result = "Merkle hashBlock: "+short_hex(hashBlock[::-1])+"\n" + result
   return result
 def deserialize_WalletTx(vds):
   result = deserialize_MerkleTx(vds)

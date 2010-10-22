@@ -10,7 +10,7 @@ import time
 
 from BCDataStream import *
 from base58 import public_key_to_bc_address
-from util import short_hex
+from util import short_hex, long_hex
 from deserialize import *
 
 def dump_wallet(db_env, print_wallet, print_wallet_transactions):  
@@ -38,7 +38,7 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
     if type == "tx":
       tx_id = kds.read_bytes(32)
       (when, value) = deserialize_WalletTx(vds)
-      t = tx_id.encode('hex_codec')
+      t = long_hex(tx_id)
       wallet_transactions.append( (when, tx_id, value) )
       continue
 
@@ -84,7 +84,7 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
 
   if print_wallet_transactions:
     for (t, tx_id, tx_value) in sorted(wallet_transactions, key=itemgetter(0)):
-      print("==WalletTransaction== "+short_hex(tx_id))
+      print("==WalletTransaction== "+long_hex(tx_id))
       print(tx_value)
 
   db.close()

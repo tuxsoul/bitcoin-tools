@@ -11,7 +11,7 @@ import time
 
 from BCDataStream import *
 from base58 import public_key_to_bc_address
-from util import short_hex
+from util import short_hex, long_hex
 from deserialize import *
 
 def _open_blkindex(db_env):
@@ -39,8 +39,8 @@ def _dump_block(datadir, nFile, nBlockPos, hash256, hashNext, do_print=True):
   ds.close_file()
   blockfile.close()
   if do_print:
-    print "BLOCK "+hash256.encode('hex_codec')
-    print "Next block: "+hashNext.encode('hex_codec')
+    print "BLOCK "+long_hex(hash256[::-1])
+    print "Next block: "+long_hex(hashNext[::-1])
     print block_string
   return block_string
 
@@ -69,10 +69,9 @@ def dump_block(datadir, db_env, block_hash):
   kds = BCDataStream()
   vds = BCDataStream()
 
-  n_tx = 0
   n_blockindex = 0
 
-  key_prefix = "\x0ablockindex"+(block_hash[0:4].decode('hex_codec'))
+  key_prefix = "\x0ablockindex"
   cursor = db.cursor()
   (key, value) = cursor.set_range(key_prefix)
 
@@ -82,9 +81,10 @@ def dump_block(datadir, db_env, block_hash):
 
     type = kds.read_string()
     hash256 = kds.read_bytes(32)
+    hash_hex = long_hex(hash256[::-1])
     block_data = _deserialize_block_index(vds)
 
-    if (hash256.encode('hex_codec')).startswith(block_hash) or short_hex(hash256).startswith(block_hash):
+    if (hash_hex.startswith(block_hash) or short_hex(hash256[::-1]).startswith(block_hash)):
       print "Block height: "+str(block_data['nHeight'])
       _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'], hash256, block_data['hashNext'])
 

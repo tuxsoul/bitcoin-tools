@@ -16,7 +16,7 @@ def deserialize_CAddress(vds):
   vds.read_bytes(12) # pchReserved
   ip = socket.inet_ntoa(vds.read_bytes(4))
   port = vds.read_uint16()
-  return ip+":"+str(port)
+  return ip+":"+str(port)+" (lastseen: %s)"%(time.ctime(t),)
 
 def deserialize_setting(setting, vds):
   if setting[0] == "f":  # flag (boolean) settings

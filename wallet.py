@@ -78,6 +78,27 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
       nTime = vds.read_int64()
       public_key = vds.read_bytes(vds.read_compact_size())
       print("Change Pool key %d: %s (Time: %s)"% (n, public_key_to_bc_address(public_key), time.ctime(nTime)))
+    elif type == "acc":
+      account = kds.read_string()
+      nVersion = vds.read_int32()
+      public_key = vds.read_bytes(vds.read_compact_size())
+      print("Account %s (current key: %s)"%(account, public_key_to_bc_address(public_key)))
+    elif type == "accmove":
+      n = kds.read_int64()
+      nVersion = vds.read_int32()
+      account = vds.read_string()
+      nCreditDebit = vds.read_int64()
+      nTime = vds.read_int64()
+      comment = vds.read_string()
+      print("Account %s credit/debit: %d (time: %s)"%(account, nCreditDebit, time.ctime(nTime)))
+    elif type == "accsend":
+      n = kds.read_int64()
+      nVersion = vds.read_int32()
+      account = vds.read_string()
+      nCreditDebit = vds.read_int64()
+      txid = vds.read_bytes(32)
+      txidHex = (txid[::-1]).encode('hex_codec')
+      print("Account %s send: %d (txid: %s)"%(account, -nCreditDebit, txidHex))
     else:
       print "Unknown key type: "+type
 

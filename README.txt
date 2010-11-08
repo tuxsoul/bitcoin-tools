@@ -12,10 +12,11 @@ Print out  wallet keys and transactions:
   dbdump.py --wallet --wallet-tx
 
 Print out the "genesis block" (the very first block in the proof-of-work block chain):
-  dbdump.py --block=27edfeb3b3c3b72a57c460a0d7bfceaa98c0d8c59fbca196910fdc0800000000
+  dbdump.py --block=000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 
 Print out one of the transactions from my wallet:
-  dbdump.py --transaction=c90a...9213
+  dbdump.py --transaction=c6e1bf883bceef0aa05113e189982055d9ba7212ddfc879798616a0d0828c98c
+  dbdump.py --transaction=c6e1...c98c
 
 Print out all blocks involving transactions to the Bitcoin Faucet:
   dbdump.py --search-blocks=15VjRaDX9zpbA8LVnbrCAFzrVzN7ixHNsC

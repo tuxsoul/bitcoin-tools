@@ -47,7 +47,7 @@ def dump_transaction(datadir, db_env, tx_id):
   n_tx = 0
   n_blockindex = 0
 
-  key_prefix = "\x02tx"+(tx_id[::-1][0:4].decode('hex_codec'))
+  key_prefix = "\x02tx"+(tx_id[-4:].decode('hex_codec')[::-1])
   cursor = db.cursor()
   (key, value) = cursor.set_range(key_prefix)
 

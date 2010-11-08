@@ -93,13 +93,22 @@ def deserialize_WalletTx(vds):
     first = vds.read_string()
     second = vds.read_string()
     orderForm.append( (first, second) )
-  timeReceivedIsTxTime = vds.read_uint32()
+  # Versioning was messed up before bitcoin 0.3.14.04;
+  # nVersion is actually fTimeReceivedIsTxTime before then.
+  nVersion = vds.read_uint32()
   timeReceived = vds.read_uint32()
   fromMe = vds.read_boolean()
   spent = vds.read_boolean()
+  if nVersion > 31404:
+    fTimeReceivedIsTxTime = vds.read_boolean()
+    fUnused = vds.read_boolen()
+    fromAccount = vds.read_string()
   result += "\n"+" mapValue:"+str(mapValue)
-  result += "\n"+" orderForm:"+str(orderForm)
+  # One of these days I'll ask Satoshi what the orderForm stuff is/was for...
+  #  result += "\n"+" orderForm:"+str(orderForm)
   result += "\n"+" timeReceived:"+time.ctime(timeReceived)+" fromMe:"+str(fromMe)+" spent:"+str(spent)
+  if nVersion > 31404:
+    result += "\n fromAccount: "+fromAccount
   return (timeReceived, result)
 
 def deserialize_Block(vds):

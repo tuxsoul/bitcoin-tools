@@ -184,3 +184,37 @@ def search_odd_scripts(datadir, cursor, block_data):
       break
     block_data = read_block(cursor, block_data['hashPrev'])
   
+def check_block_chain(db_env):
+  """ Make sure hashPrev/hashNext pointers are consistent through block chain """
+  db = _open_blkindex(db_env)
+
+  kds = BCDataStream()
+  vds = BCDataStream()
+  
+  # Read the hashBestChain record:
+  cursor = db.cursor()
+  (key, value) = cursor.set_range("\x0dhashBestChain")
+  vds.write(value)
+  hashBestChain = vds.read_bytes(32)
+
+  back_blocks = []
+
+  block_data = read_block(cursor, hashBestChain)
+
+  while block_data['nHeight'] > 0:
+    back_blocks.append( (block_data['nHeight'], block_data['hashMerkle'], block_data['hashPrev'], block_data['hashNext']) )
+    block_data = read_block(cursor, block_data['hashPrev'])
+
+  back_blocks.append( (block_data['nHeight'], block_data['hashMerkle'], block_data['hashPrev'], block_data['hashNext']) )
+  genesis_block = block_data
+  
+  print("check block chain: genesis block merkle hash is: %s"%(block_data['hashMerkle'][::-1].encode('hex_codec')))
+
+  while block_data['hashNext'] != ('\0'*32):
+    forward = (block_data['nHeight'], block_data['hashMerkle'], block_data['hashPrev'], block_data['hashNext'])
+    back = back_blocks.pop()
+    if forward != back:
+      print("Forward/back block mismatch at height %d!"%(block_data['nHeight'],))
+      print(" Forward: "+str(forward))
+      print(" Back: "+str(back))
+    block_data = read_block(cursor, block_data['hashNext'])

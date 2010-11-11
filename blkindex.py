@@ -53,4 +53,3 @@ def dump_blkindex_summary(db_env):
 
   print(" %d transactions, %d blocks."%(n_tx, n_blockindex))
   db.close()
-

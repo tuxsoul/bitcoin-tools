@@ -10,7 +10,7 @@ from address import dump_addresses
 from wallet import dump_wallet
 from blkindex import dump_blkindex_summary
 from transaction import dump_transaction
-from block import dump_block, dump_block_n, search_blocks
+from block import dump_block, dump_block_n, search_blocks, check_block_chain
 
 def determine_db_dir():
   import os
@@ -31,6 +31,8 @@ def main():
                     help="Print out contents of the wallet.dat file")
   parser.add_option("--blkindex", action="store_true", dest="dump_blkindex", default=False,
                     help="Print out summary of blkindex.dat file")
+  parser.add_option("--check-block-chain", action="store_true", dest="check_chain", default=False,
+                    help="Scan back and forward through the block chain, looking for inconsistencies")
   parser.add_option("--wallet-tx", action="store_true", dest="dump_wallet_tx", default=False,
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
@@ -62,6 +64,9 @@ def main():
 
   if options.dump_addr:
     dump_addresses(db_env)
+
+  if options.check_chain:
+    check_block_chain(db_env)
 
   if options.dump_blkindex:
     dump_blkindex_summary(db_env)

@@ -18,6 +18,9 @@ Print out one of the transactions from my wallet:
   dbdump.py --transaction=c6e1bf883bceef0aa05113e189982055d9ba7212ddfc879798616a0d0828c98c
   dbdump.py --transaction=c6e1...c98c
 
+Print out all 'received' transactions that aren't yet spent:
+  dbdump.py --wallet-tx-filter='fromMe:False.*spent:False'
+
 Print out all blocks involving transactions to the Bitcoin Faucet:
   dbdump.py --search-blocks=15VjRaDX9zpbA8LVnbrCAFzrVzN7ixHNsC
 

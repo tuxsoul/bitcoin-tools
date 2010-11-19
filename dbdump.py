@@ -29,12 +29,14 @@ def main():
                     help="Look for files here (defaults to bitcoin default)")
   parser.add_option("--wallet", action="store_true", dest="dump_wallet", default=False,
                     help="Print out contents of the wallet.dat file")
+  parser.add_option("--wallet-tx", action="store_true", dest="dump_wallet_tx", default=False,
+                    help="Print transactions in the wallet.dat file")
+  parser.add_option("--wallet-tx-filter", action="store", dest="wallet_tx_filter", default="",
+                    help="Only print transactions that match given string/regular expression")
   parser.add_option("--blkindex", action="store_true", dest="dump_blkindex", default=False,
                     help="Print out summary of blkindex.dat file")
   parser.add_option("--check-block-chain", action="store_true", dest="check_chain", default=False,
                     help="Scan back and forward through the block chain, looking for inconsistencies")
-  parser.add_option("--wallet-tx", action="store_true", dest="dump_wallet_tx", default=False,
-                    help="Print transactions in the wallet.dat file")
   parser.add_option("--address", action="store_true", dest="dump_addr", default=False,
                     help="Print addresses in the addr.dat file")
   parser.add_option("--transaction", action="store", dest="dump_transaction", default=None,
@@ -59,8 +61,11 @@ def main():
     logging.error("Couldn't open "+DB_DIR)
     sys.exit(1)
 
-  if options.dump_wallet or options.dump_wallet_tx:
-    dump_wallet(db_env, options.dump_wallet, options.dump_wallet_tx)
+  dump_tx = options.dump_wallet_tx
+  if len(options.wallet_tx_filter) > 0:
+    dump_tx = True
+  if options.dump_wallet or dump_tx:
+    dump_wallet(db_env, options.dump_wallet, dump_tx, options.wallet_tx_filter)
 
   if options.dump_addr:
     dump_addresses(db_env)

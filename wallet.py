@@ -5,6 +5,7 @@
 from bsddb.db import *
 import logging
 from operator import itemgetter
+import re
 import sys
 import time
 
@@ -13,7 +14,7 @@ from base58 import public_key_to_bc_address
 from util import short_hex, long_hex
 from deserialize import *
 
-def dump_wallet(db_env, print_wallet, print_wallet_transactions):  
+def dump_wallet(db_env, print_wallet, print_wallet_transactions, transaction_filter):
   db = DB(db_env)
   try:
     r = db.open("wallet.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
@@ -98,6 +99,8 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions):
 
   if print_wallet_transactions:
     for (t, tx_id, tx_value) in sorted(wallet_transactions, key=itemgetter(0)):
+      if len(transaction_filter) > 0 and re.search(transaction_filter, tx_value) is None: continue
+
       print("==WalletTransaction== "+long_hex(tx_id[::-1]))
       print(tx_value)
 

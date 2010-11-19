@@ -57,7 +57,7 @@ class BCDataStream(object):
 
     return ''
 
-  def read_boolean(self): return self.read_bytes(1) != 0
+  def read_boolean(self): return self.read_bytes(1)[0] != '\0'
   def read_int16(self): return self._read_num('<h')
   def read_uint16(self): return self._read_num('<H')
   def read_int32(self): return self._read_num('<i')

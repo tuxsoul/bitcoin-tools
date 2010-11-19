@@ -101,7 +101,7 @@ def deserialize_WalletTx(vds):
   spent = vds.read_boolean()
   if nVersion > 31404:
     fTimeReceivedIsTxTime = vds.read_boolean()
-    fUnused = vds.read_boolen()
+    fUnused = vds.read_boolean()
     fromAccount = vds.read_string()
   result += "\n"+" mapValue:"+str(mapValue)
   # One of these days I'll ask Satoshi what the orderForm stuff is/was for...

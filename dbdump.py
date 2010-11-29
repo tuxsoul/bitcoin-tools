@@ -7,7 +7,7 @@ import logging
 import sys
 
 from address import dump_addresses
-from wallet import dump_wallet
+from wallet import dump_wallet, dump_accounts
 from blkindex import dump_blkindex_summary
 from transaction import dump_transaction
 from block import dump_block, dump_block_n, search_blocks, check_block_chain
@@ -33,6 +33,8 @@ def main():
                     help="Print transactions in the wallet.dat file")
   parser.add_option("--wallet-tx-filter", action="store", dest="wallet_tx_filter", default="",
                     help="Only print transactions that match given string/regular expression")
+  parser.add_option("--accounts", action="store_true", dest="dump_accounts", default="",
+                    help="Print out account names, one per line")
   parser.add_option("--blkindex", action="store_true", dest="dump_blkindex", default=False,
                     help="Print out summary of blkindex.dat file")
   parser.add_option("--check-block-chain", action="store_true", dest="check_chain", default=False,
@@ -66,6 +68,8 @@ def main():
     dump_tx = True
   if options.dump_wallet or dump_tx:
     dump_wallet(db_env, options.dump_wallet, dump_tx, options.wallet_tx_filter)
+  if options.dump_accounts:
+    dump_accounts(db_env)
 
   if options.dump_addr:
     dump_addresses(db_env)

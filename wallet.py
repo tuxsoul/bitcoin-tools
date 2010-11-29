@@ -14,7 +14,7 @@ from base58 import public_key_to_bc_address
 from util import short_hex, long_hex
 from deserialize import *
 
-def dump_wallet(db_env, print_wallet, print_wallet_transactions, transaction_filter):
+def open_wallet(db_env):
   db = DB(db_env)
   try:
     r = db.open("wallet.dat", "main", DB_BTREE, DB_THREAD|DB_RDONLY)
@@ -24,6 +24,11 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions, transaction_fil
   if r is not None:
     logging.error("Couldn't open wallet.dat/main. Try quitting Bitcoin and running this again.")
     sys.exit(1)
+  
+  return db
+
+def dump_wallet(db_env, print_wallet, print_wallet_transactions, transaction_filter):
+  db = open_wallet(db_env)
 
   kds = BCDataStream()
   vds = BCDataStream()
@@ -106,3 +111,30 @@ def dump_wallet(db_env, print_wallet, print_wallet_transactions, transaction_fil
 
   db.close()
 
+def dump_accounts(db_env):
+  db = open_wallet(db_env)
+
+  kds = BCDataStream()
+  vds = BCDataStream()
+
+  accounts = set()
+
+  for (key, value) in db.items():
+    kds.clear(); kds.write(key)
+    vds.clear(); vds.write(value)
+
+    type = kds.read_string()
+
+    if type == "acc":
+      accounts.add(kds.read_string())
+    elif type == "name":
+      accounts.add(vds.read_string())
+    elif type == "acentry":
+      accounts.add(kds.read_string())
+      # Note: don't need to add otheraccount, because moves are
+      # always double-entry
+
+  for name in sorted(accounts):
+    print(name)
+
+  db.close()

@@ -1,5 +1,5 @@
 #
-# Deserialize bitcoin objects from BCDataStreams
+#
 #
 
 from BCDataStream import *
@@ -9,123 +9,162 @@ import socket
 import time
 from util import short_hex, long_hex
 
-def deserialize_CAddress(vds):
-  version = vds.read_int32()
-  t = vds.read_uint32()
-  nServices = vds.read_uint64()
-  vds.read_bytes(12) # pchReserved
-  ip = socket.inet_ntoa(vds.read_bytes(4))
-  port = vds.read_uint16()
-  return ip+":"+str(port)+" (lastseen: %s)"%(time.ctime(t),)
+def parse_CAddress(vds):
+  d = {}
+  d['nVersion'] = vds.read_int32()
+  d['nTime'] = vds.read_uint32()
+  d['nServices'] = vds.read_uint64()
+  d['pchReserved'] = vds.read_bytes(12)
+  d['ip'] = socket.inet_ntoa(vds.read_bytes(4))
+  d['port'] = vds.read_uint16()
+  return d
 
-def deserialize_setting(setting, vds):
+def deserialize_CAddress(d):
+  return d['ip']+":"+str(d['port'])+" (lastseen: %s)"%(time.ctime(d['nTime']),)
+
+def parse_setting(setting, vds):
   if setting[0] == "f":  # flag (boolean) settings
     return str(vds.read_boolean())
   elif setting[0:4] == "addr": # CAddress
-    return deserialize_CAddress(vds)
+    d = parse_CAddress(vds)
+    return deserialize_CAddress(d)
   elif setting == "nTransactionFee":
     return vds.read_int64()
   elif setting == "nLimitProcessors":
     return vds.read_int32()
   return 'unknown setting'
 
-def deserialize_TxIn(vds):
-  prevout_hash = vds.read_bytes(32)
-  prevout_n = vds.read_uint32()
-  scriptSig = vds.read_bytes(vds.read_compact_size())
-  sequence = vds.read_uint32()
-  if prevout_hash == "\x00"*32:
+def parse_TxIn(vds):
+  d = {}
+  d['prevout_hash'] = vds.read_bytes(32)
+  d['prevout_n'] = vds.read_uint32()
+  d['scriptSig'] = vds.read_bytes(vds.read_compact_size())
+  d['sequence'] = vds.read_uint32()
+  return d
+def deserialize_TxIn(d):
+  if d['prevout_hash'] == "\x00"*32:
     result = "TxIn: COIN GENERATED"
-    result += " coinbase:"+scriptSig.encode('hex_codec')
+    result += " coinbase:"+d['scriptSig'].encode('hex_codec')
   else:
-    result = "TxIn: prev("+long_hex(prevout_hash[::-1])+":"+str(prevout_n)+")"
-    pk = extract_public_key(scriptSig)
+    result = "TxIn: prev("+long_hex(d['prevout_hash'][::-1])+":"+str(d['prevout_n'])+")"
+    pk = extract_public_key(d['scriptSig'])
     result += " pubkey: "+pk
-    result += " sig: "+decode_script(scriptSig)
-  if sequence < 0xffffffff: result += " sequence: "+hex(sequence)
+    result += " sig: "+decode_script(d['scriptSig'])
+  if d['sequence'] < 0xffffffff: result += " sequence: "+hex(d['sequence'])
   return result
-def deserialize_TxOut(vds):
-  value = vds.read_int64()
-  scriptPubKey = vds.read_bytes(vds.read_compact_size())
-  result =  "TxOut: value: %.2f"%(value/1.0e8,)
-  pk = extract_public_key(scriptPubKey)
+
+def parse_TxOut(vds):
+  d = {}
+  d['value'] = vds.read_int64()
+  d['scriptPubKey'] = vds.read_bytes(vds.read_compact_size())
+  return d
+def deserialize_TxOut(d):
+  result =  "TxOut: value: %.2f"%(d['value']/1.0e8,)
+  pk = extract_public_key(d['scriptPubKey'])
   result += " pubkey: "+pk
-  result += " Script: "+decode_script(scriptPubKey)
+  result += " Script: "+decode_script(d['scriptPubKey'])
   return result
-def deserialize_Transaction(vds):
-  version = vds.read_int32()
+
+def parse_Transaction(vds):
+  d = {}
+  d['version'] = vds.read_int32()
   n_vin = vds.read_compact_size()
-  txIn = []
+  d['txIn'] = []
   for i in xrange(n_vin):
-    txIn.append(deserialize_TxIn(vds))
+    d['txIn'].append(parse_TxIn(vds))
   n_vout = vds.read_compact_size()
-  txOut = []
+  d['txOut'] = []
   for i in xrange(n_vout):
-    txOut.append(deserialize_TxOut(vds))
-  lockTime = vds.read_uint32()
-  result = "%d tx in, %d out\n"%(n_vin, n_vout)
-  result += str(txIn)+"\n"
-  result += str(txOut)
+    d['txOut'].append(parse_TxOut(vds))
+  d['lockTime'] = vds.read_uint32()
+  return d
+def deserialize_Transaction(d):
+  result = "%d tx in, %d out\n"%(len(d['txIn']), len(d['txOut']))
+  for txIn in d['txIn']:
+    result += deserialize_TxIn(txIn) + "\n"
+  for txOut in d['txOut']:
+    result += deserialize_TxOut(txOut) + "\n"
   return result
-def deserialize_MerkleTx(vds):
-  result = deserialize_Transaction(vds)
-  hashBlock = vds.read_bytes(32)
+
+def parse_MerkleTx(vds):
+  d = parse_Transaction(vds)
+  d['hashBlock'] = vds.read_bytes(32)
   n_merkleBranch = vds.read_compact_size()
-  merkleBranch = vds.read_bytes(32*n_merkleBranch)
-  nIndex = vds.read_int32()
-  result = "Merkle hashBlock: "+short_hex(hashBlock[::-1])+"\n" + result
+  d['merkleBranch'] = vds.read_bytes(32*n_merkleBranch)
+  d['nIndex'] = vds.read_int32()
+  return d
+
+def deserialize_MerkleTx(d):
+  result = deserialize_Transaction(d)
+  result = "Merkle hashBlock: "+short_hex(d['hashBlock'][::-1])+"\n" + result
   return result
-def deserialize_WalletTx(vds):
-  result = deserialize_MerkleTx(vds)
+
+def parse_WalletTx(vds):
+  d = parse_MerkleTx(vds)
   n_vtxPrev = vds.read_compact_size()
-  vtxPrev = []
+  d['vtxPrev'] = []
   for i in xrange(n_vtxPrev):
-    vtxPrev.append(deserialize_MerkleTx(vds))
-  mapValue = {}
+    d['vtxPrev'].append(parse_MerkleTx(vds))
+
+  d['mapValue'] = {}
   n_mapValue = vds.read_compact_size()
   for i in xrange(n_mapValue):
     key = vds.read_string()
     value = vds.read_string()
-    mapValue[key] = value
+    d['mapValue'][key] = value
   n_orderForm = vds.read_compact_size()
-  orderForm = []
+  d['orderForm'] = []
   for i in xrange(n_orderForm):
     first = vds.read_string()
     second = vds.read_string()
-    orderForm.append( (first, second) )
+    d['orderForm'].append( (first, second) )
   # Versioning was messed up before bitcoin 0.3.14.04;
   # nVersion is actually fTimeReceivedIsTxTime before then.
-  nVersion = vds.read_uint32()
-  timeReceived = vds.read_uint32()
-  fromMe = vds.read_boolean()
-  spent = vds.read_boolean()
-  if nVersion > 31404:
-    fTimeReceivedIsTxTime = vds.read_boolean()
-    fUnused = vds.read_boolean()
-    fromAccount = vds.read_string()
-  result += "\n"+" mapValue:"+str(mapValue)
-  # One of these days I'll ask Satoshi what the orderForm stuff is/was for...
-  #  result += "\n"+" orderForm:"+str(orderForm)
-  result += "\n"+" timeReceived:"+time.ctime(timeReceived)+" fromMe:"+str(fromMe)+" spent:"+str(spent)
-  if nVersion > 31404:
-    result += "\n fromAccount: "+fromAccount
-  return (timeReceived, result)
+  d['nVersion'] = vds.read_uint32()
+  d['timeReceived'] = vds.read_uint32()
+  d['fromMe'] = vds.read_boolean()
+  d['spent'] = vds.read_boolean()
+  if d['nVersion'] > 31404:
+    d['fTimeReceivedIsTxTime'] = vds.read_boolean()
+    d['fUnused'] = vds.read_boolean()
+    d['fromAccount'] = vds.read_string()
 
-def deserialize_Block(vds):
-  version = vds.read_int32()
-  hashPrev = vds.read_bytes(32)
-  hashMerkleRoot = vds.read_bytes(32)
-  nTime = vds.read_uint32()
-  nBits = vds.read_uint32()
-  nNonce = vds.read_uint32()
+  return d
+
+def deserialize_WalletTx(d):
+  result = deserialize_MerkleTx(d)
+
+  result += "mapValue:"+str(d['mapValue'])
+  # One of these days I'll ask Satoshi what the orderForm stuff is/was for...
+  #  result += "\n"+" orderForm:"+str(d['orderForm'])
+  result += "\n"+"timeReceived:"+time.ctime(d['timeReceived'])+" fromMe:"+str(d['fromMe'])+" spent:"+str(d['spent'])
+  if d['nVersion'] > 31404:
+    result += "\n fromAccount: "+d['fromAccount']
+  return result
+
+def parse_Block(vds):
+  d = {}
+  d['version'] = vds.read_int32()
+  d['hashPrev'] = vds.read_bytes(32)
+  d['hashMerkleRoot'] = vds.read_bytes(32)
+  d['nTime'] = vds.read_uint32()
+  d['nBits'] = vds.read_uint32()
+  d['nNonce'] = vds.read_uint32()
+  d['transactions'] = []
   nTransactions = vds.read_compact_size()
-  result = "Time: "+time.ctime(nTime)+" Nonce: "+str(nNonce)
-  result += "\nnBits: 0x"+hex(nBits)
-  result += "\nhashMerkleRoot: 0x"+hashMerkleRoot[::-1].encode('hex_codec')
-  result += "\nPrevious block: "+hashPrev[::-1].encode('hex_codec')
-  result += "\n%d transactions:\n"%(nTransactions,)
-  for i in range(0, nTransactions):
-    result += deserialize_Transaction(vds)+"\n"
+  for i in xrange(nTransactions):
+    d['transactions'].append(parse_Transaction(vds))
+
+  return d
+  
+def deserialize_Block(d):
+  result = "Time: "+time.ctime(d['nTime'])+" Nonce: "+str(d['nNonce'])
+  result += "\nnBits: 0x"+hex(d['nBits'])
+  result += "\nhashMerkleRoot: 0x"+d['hashMerkleRoot'][::-1].encode('hex_codec')
+  result += "\nPrevious block: "+d['hashPrev'][::-1].encode('hex_codec')
+  result += "\n%d transactions:\n"%len(d['transactions'])
+  for t in d['transactions']:
+    result += deserialize_Transaction(t)+"\n"
   return result
 
 opcodes = Enumeration("Opcodes", [

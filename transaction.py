@@ -23,7 +23,8 @@ def _dump_tx(datadir, tx_hash, tx_pos):
   blockfile = open(os.path.join(datadir, "blk%04d.dat"%(tx_pos[0],)), "rb")
   ds = BCDataStream()
   ds.map_file(blockfile, tx_pos[2])
-  print deserialize_Transaction(ds)
+  d = parse_Transaction(ds)
+  print deserialize_Transaction(d)
   ds.close_file()
   blockfile.close()
 

@@ -36,6 +36,7 @@ def dump_addresses(db_env):
     type = kds.read_string()
 
     if type == "addr":
-      print(deserialize_CAddress(vds))
+      d = parse_CAddress(vds)
+      print(deserialize_CAddress(d))
 
   db.close()

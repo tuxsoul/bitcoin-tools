@@ -159,8 +159,12 @@ def search_odd_scripts(datadir, cursor, block_data):
     block_string = _dump_block(datadir, block_data['nFile'], block_data['nBlockPos'],
                                block_data['hash256'], block_data['hashNext'], False)
     
+    import pdb
+    if block_data['nHeight'] == 71036:
+      pdb.set_trace()
+
     found_nonstandard = False
-    for m in re.finditer("'TxIn:(.*?)'", block_string):
+    for m in re.finditer(r'TxIn:(.*?)$', block_string, re.MULTILINE):
       s = m.group(1)
       if re.match(r'\s*COIN GENERATED coinbase:\w+$', s): continue
       if re.match(r'.*sig: \d+:\w+...\w+ \d+:\w+...\w+$', s): continue
@@ -169,7 +173,7 @@ def search_odd_scripts(datadir, cursor, block_data):
       found_nonstandard = True
       break
 
-    for m in re.finditer("'TxOut:(.*?)'", block_string):
+    for m in re.finditer(r'TxOut:(.*?)$', block_string, re.MULTILINE):
       s = m.group(1)
       if re.match(r'.*Script: DUP HASH160 \d+:\w+...\w+ EQUALVERIFY CHECKSIG$', s): continue
       if re.match(r'.*Script: \d+:\w+...\w+ CHECKSIG$', s): continue
